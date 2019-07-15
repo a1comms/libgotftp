@@ -191,7 +191,11 @@ func (res *RRQresponse) End() (int, error) {
 func NewRRQresponse(server *Server, clientaddr *net.UDPAddr, request *Request, badinternet bool) (*RRQresponse, error) {
 
 	listenIp := ""
-	if server.listenAddr.IP != nil {
+	if server.replyAddr != nil {
+		if server.replyAddr.IP != nil {
+			listenIp = server.replyAddr.IP.String()
+		}
+	} else if server.listenAddr.IP != nil {
 		listenIp = server.listenAddr.IP.String()
 	}
 
