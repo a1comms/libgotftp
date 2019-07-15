@@ -9,6 +9,9 @@ type Server struct {
 	conn       *net.UDPConn
 	listenAddr *net.UDPAddr
 	replyAddr  *net.UDPAddr
+	portArray  []int
+	portMap    map[int]bool
+	portMapMutex sync.Mutex
 	buffer     []byte
 }
 
@@ -42,7 +45,28 @@ func (server *Server) Accept() (*RRQresponse, error) {
 	return response, nil
 }
 
-func NewTFTPServer(addr *net.UDPAddr, replyAddr *net.UDPAddr) (*Server, error) {
+func (server *Server) AllocatePort() (int, error) {
+	server.portMapMutex.Lock()
+	defer server.portMapMutex.Unlock()
+
+	for _, port := range server.portArray {
+		if _, ok := server.portMap[port]; ! ok {
+			server.portMap[port] = true
+			return port, nil
+		}
+	}
+
+	return 0, fmt.Errorf("Unable to allocate reply port, non available from pool")
+}
+
+func (server *Server) FreePort(port int) (error) {
+	server.portMapMutex.Lock()
+	defer server.portMapMutex.Unlock()
+
+	delete(server.portMap, port)
+}
+
+func NewTFTPServer(addr *net.UDPAddr, replyAddr *net.UDPAddr, portArray []int) (*Server, error) {
 	conn, err := net.ListenUDP("udp", addr)
 	if err != nil {
 		return nil, fmt.Errorf("Failed listen UDP %v", err)
@@ -52,6 +76,7 @@ func NewTFTPServer(addr *net.UDPAddr, replyAddr *net.UDPAddr) (*Server, error) {
 		conn,
 		addr,
 		replyAddr,
+		portArray,
 		make([]byte, 2048),
 	}, nil
 

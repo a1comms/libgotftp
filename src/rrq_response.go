@@ -21,6 +21,8 @@ type Connection interface {
 
 type RRQresponse struct {
 	conn         Connection
+	server       *Server
+	port		 int
 	buffer       []byte
 	pos          int
 	ack          []byte
@@ -182,6 +184,7 @@ func (res *RRQresponse) WriteOACK() error {
 
 func (res *RRQresponse) End() (int, error) {
 	defer res.conn.Close()
+	defer res.server.FreePort(res.port)
 
 	// Signal end of the transmission. This can be neither empty block or
 	// block smaller than res.Request.Blocksize
@@ -199,7 +202,12 @@ func NewRRQresponse(server *Server, clientaddr *net.UDPAddr, request *Request, b
 		listenIp = server.listenAddr.IP.String()
 	}
 
-	listenaddr, err := net.ResolveUDPAddr("udp", listenIp+":0")
+	port, err := server.AllocatePort()
+	if err != nil {
+		return nil, err
+	}
+
+	listenaddr, err := net.ResolveUDPAddr("udp", listenIp+":"+strconv.Itoa(port))
 	if err != nil {
 		return nil, err
 	}
@@ -211,6 +219,8 @@ func NewRRQresponse(server *Server, clientaddr *net.UDPAddr, request *Request, b
 
 	return &RRQresponse{
 		conn,
+		server,
+		port,
 		make([]byte, request.Blocksize+4),
 		0,
 		make([]byte, 4),
