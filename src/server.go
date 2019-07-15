@@ -65,6 +65,8 @@ func (server *Server) FreePort(port int) error {
 	defer server.portMapMutex.Unlock()
 
 	delete(server.portMap, port)
+
+	return nil
 }
 
 func NewTFTPServer(addr *net.UDPAddr, replyAddr *net.UDPAddr, portArray []int) (*Server, error) {
@@ -78,6 +80,7 @@ func NewTFTPServer(addr *net.UDPAddr, replyAddr *net.UDPAddr, portArray []int) (
 		addr,
 		replyAddr,
 		portArray,
+		map[int]bool{},
 		make([]byte, 2048),
 	}, nil
 
