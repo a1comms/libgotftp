@@ -3,16 +3,17 @@ package tftp
 import (
 	"fmt"
 	"net"
+	"sync"
 )
 
 type Server struct {
-	conn       *net.UDPConn
-	listenAddr *net.UDPAddr
-	replyAddr  *net.UDPAddr
-	portArray  []int
-	portMap    map[int]bool
+	conn         *net.UDPConn
+	listenAddr   *net.UDPAddr
+	replyAddr    *net.UDPAddr
+	portArray    []int
+	portMap      map[int]bool
 	portMapMutex sync.Mutex
-	buffer     []byte
+	buffer       []byte
 }
 
 func (server *Server) Accept() (*RRQresponse, error) {
@@ -50,7 +51,7 @@ func (server *Server) AllocatePort() (int, error) {
 	defer server.portMapMutex.Unlock()
 
 	for _, port := range server.portArray {
-		if _, ok := server.portMap[port]; ! ok {
+		if _, ok := server.portMap[port]; !ok {
 			server.portMap[port] = true
 			return port, nil
 		}
@@ -59,7 +60,7 @@ func (server *Server) AllocatePort() (int, error) {
 	return 0, fmt.Errorf("Unable to allocate reply port, non available from pool")
 }
 
-func (server *Server) FreePort(port int) (error) {
+func (server *Server) FreePort(port int) error {
 	server.portMapMutex.Lock()
 	defer server.portMapMutex.Unlock()
 

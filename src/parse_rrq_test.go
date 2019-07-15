@@ -1,14 +1,13 @@
-
 package tftp
 
 import (
-	"fmt"
-	"testing"
 	"encoding/binary"
+	"fmt"
 	"strconv"
+	"testing"
 )
 
-func createRRQTestData(path string, mode string, blocksize int) ([]byte) {
+func createRRQTestData(path string, mode string, blocksize int) []byte {
 	data := make([]byte, 2)
 	binary.BigEndian.PutUint16(data, RRQ)
 	data = append(data, []byte(path)...)
@@ -97,4 +96,3 @@ func TestIgnoreUnknownOptions(t *testing.T) {
 		return
 	}
 }
-

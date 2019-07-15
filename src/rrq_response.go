@@ -22,7 +22,7 @@ type Connection interface {
 type RRQresponse struct {
 	conn         Connection
 	server       *Server
-	port		 int
+	port         int
 	buffer       []byte
 	pos          int
 	ack          []byte
