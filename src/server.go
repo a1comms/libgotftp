@@ -76,12 +76,12 @@ func NewTFTPServer(addr *net.UDPAddr, replyAddr *net.UDPAddr, portArray []int) (
 	}
 
 	return &Server{
-		conn,
-		addr,
-		replyAddr,
-		portArray,
-		map[int]bool{},
-		make([]byte, 2048),
+		conn:       conn,
+		listenAddr: addr,
+		replyAddr:  replyAddr,
+		portArray:  portArray,
+		portMap:    map[int]bool{},
+		buffer:     make([]byte, 2048),
 	}, nil
 
 }
